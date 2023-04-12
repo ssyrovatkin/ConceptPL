@@ -1,0 +1,76 @@
+mov x8, 1
+
+mov x13, 228                                                // - Second additional arg printf
+sub sp, sp, x8    // move stack pointer to next cell
+str x13, sp       // store second arg
+
+loadstr x11, x12, "аргумент"                                // - First additional arg printf
+sub sp, sp, x8    // move stack pointer to next cell
+str x11, sp       // store first arg address
+sub sp, sp, x8    // move stack pointer to next cell
+str x12, sp       // store first arg length
+
+loadstr x9, x10, "Строка: %s, число: %d"                    // - Formatted string printf
+sub sp, sp, x8    // move stack pointer to next cell
+str x9, sp        // store format string address
+sub sp, sp, x8    // move stack pointer to next cell
+str x10, sp       // store format string length
+
+bl .printf
+EXIT
+
+.printf:
+mov x1, 37        // const: '%'
+mov x2, 100       // const: 'd'
+mov x3, 115       // const: 's'
+mov x4, 0         // const: 0
+
+load x10, sp      // load format string length
+add sp, sp, x8    // move stack pointer to previous cell
+load x9, sp       // load format string address
+add sp, sp, x8    // move stack pointer to previous cell
+
+.cycle:
+cmp x10, x4       // while length > 0 (if not, jump .end)
+bLE .end
+
+load x11, x9      // load next symbol
+add x9, x9, x8    // move string address to next cell
+sub x10, x10, x8  // length <- length - 1
+
+cmp x11, x1
+bEQ .print_formatted // if next symbol == '%' print formatted value
+
+print_c x11        // print next symbol
+b .cycle
+
+.end:
+ret
+
+.print_formatted:
+load x11, x9      // load next symbol
+add x9, x9, x8    // move string address to next cell
+sub x10, x10, x8  // length <- length - 1
+
+cmp x11, x2
+bEQ .print_digit // if next symbol == 'd' print digit from args
+
+cmp x11, x3
+bEQ .print_string // if next symbol == 's' print string from args
+
+.print_string:
+load x13, sp      // load string arg length
+add sp, sp, x8    // move stack pointer to previous cell
+load x12, sp      // load string arg address
+add sp, sp, x8    // move stack pointer to previous cell
+print_s x12, x13  // print string
+b .cycle
+
+.print_digit:
+load x12, sp      // load digit arg
+add sp, sp, x8    // move stack pointer to previous cell
+print_r x12
+b .cycle
+
+
+

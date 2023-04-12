@@ -1,0 +1,41 @@
+mov x8, 1
+mov x9, 1
+print "Enter number:"
+inp x1            // n
+bl .fibonacci     // call fib(n)
+print "Result:"
+print_r x0
+EXIT
+
+.fibonacci:
+cmp x1, x8
+bLE .fib_one      // if (n <= 1) jump .fib_one
+
+sub x1, x1, x8    // x1 <- (n - 1)
+
+sub sp, sp, x9    // move stack pointer to next cell
+str x30, sp       // save ret addr
+sub sp, sp, x9    // move stack pointer to next cell
+str x1, sp        // store (n - 1)
+
+bl .fibonacci     // call fib(n - 1)
+
+load x1, sp       // load (n - 1)
+str x0, sp        // store fib(n - 1)
+
+sub x1, x1, x8    // x1 <- (n - 2)
+
+bl .fibonacci     // call fib(n - 2)
+
+load x1, sp       // load fib(n - 1)
+add sp, sp, x9    // move stack pointer to previous cell
+load x30, sp      // load ret addr
+add sp, sp, x9    // move stack pointer to previous cell
+
+add x0, x0, x1   // x0 <- fib(n - 1) + fib(n - 2)
+ret
+
+
+.fib_one:
+mov x0, 1
+ret
